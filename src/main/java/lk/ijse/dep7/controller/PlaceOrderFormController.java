@@ -12,6 +12,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Paint;
@@ -22,6 +23,7 @@ import lk.ijse.dep7.exception.FailedOperationException;
 import lk.ijse.dep7.exception.NotFondException;
 import lk.ijse.dep7.service.CustomerService;
 import lk.ijse.dep7.service.ItemService;
+import lk.ijse.dep7.util.PlaceOrderTM;
 
 import java.io.IOException;
 import java.net.URL;
@@ -33,8 +35,7 @@ public class PlaceOrderFormController {
     public JFXTextField txtCustomerName;
     public JFXTextField txtDescription;
     public JFXTextField txtQtyOnHand;
-    public JFXButton btnSave;
-    public TableView tblOrderDetails;
+    public TableView<PlaceOrderTM> tblOrderDetails;
     public JFXTextField txtUnitPrice;
     public JFXComboBox cmbCustomerId;
     public JFXComboBox cmbItemCode;
@@ -58,6 +59,12 @@ public class PlaceOrderFormController {
     }
 
     public void initialize() {
+        tblOrderDetails.getColumns().get(0).setCellValueFactory(new PropertyValueFactory<>("code"));
+        tblOrderDetails.getColumns().get(1).setCellValueFactory(new PropertyValueFactory<>("description"));
+        tblOrderDetails.getColumns().get(2).setCellValueFactory(new PropertyValueFactory<>("qty"));
+        tblOrderDetails.getColumns().get(3).setCellValueFactory(new PropertyValueFactory<>("unitPrice"));
+        tblOrderDetails.getColumns().get(4).setCellValueFactory(new PropertyValueFactory<>("total"));
+        btnAdd.setDisable(true);
         try {
             for (CustomerDTO customerDTO : customerService.findAllCustomer()) {
                 cmbCustomerId.getItems().add(customerDTO.getCustomerId());
@@ -79,7 +86,6 @@ public class PlaceOrderFormController {
             }
         });
 
-        btnAdd.setDisable(true);
         cmbItemCode.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, selectedItem) -> {
             if (selectedItem != null) {
                 try {
@@ -105,8 +111,12 @@ public class PlaceOrderFormController {
     }
 
     public void txtQty_OnAction(ActionEvent actionEvent) {
+
     }
 
     public void btnPlaceOrder_OnAction(ActionEvent actionEvent) {
+
     }
+
+
 }
