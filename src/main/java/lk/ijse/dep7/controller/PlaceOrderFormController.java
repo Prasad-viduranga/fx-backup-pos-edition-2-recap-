@@ -4,14 +4,13 @@ import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXComboBox;
 import com.jfoenix.controls.JFXTextField;
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -26,7 +25,9 @@ import lk.ijse.dep7.service.ItemService;
 import lk.ijse.dep7.util.PlaceOrderTM;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.URL;
+import java.time.LocalDate;
 
 public class PlaceOrderFormController {
 
@@ -64,7 +65,17 @@ public class PlaceOrderFormController {
         tblOrderDetails.getColumns().get(2).setCellValueFactory(new PropertyValueFactory<>("qty"));
         tblOrderDetails.getColumns().get(3).setCellValueFactory(new PropertyValueFactory<>("unitPrice"));
         tblOrderDetails.getColumns().get(4).setCellValueFactory(new PropertyValueFactory<>("total"));
+        TableColumn<PlaceOrderTM, Button> deleteCol = (TableColumn<PlaceOrderTM, Button>) tblOrderDetails.getColumns().get(5);
+
+
         btnAdd.setDisable(true);
+        lblId.setText(generateNewOrderId());
+        lblDate.setText(String.valueOf(LocalDate.now()));
+        txtCustomerName.setEditable(false);
+        txtDescription.setEditable(false);
+        txtQtyOnHand.setEditable(false);
+        txtUnitPrice.setEditable(false);
+
         try {
             for (CustomerDTO customerDTO : customerService.findAllCustomer()) {
                 cmbCustomerId.getItems().add(customerDTO.getCustomerId());
@@ -75,6 +86,8 @@ public class PlaceOrderFormController {
         } catch (FailedOperationException e) {
             new Alert(Alert.AlertType.ERROR, "Failed to load the customer IDs");
         }
+        cmbCustomerId.requestFocus();
+
         cmbCustomerId.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, selectedCustomer) -> {
             if (selectedCustomer != null) {
                 try {
@@ -82,9 +95,16 @@ public class PlaceOrderFormController {
                 } catch (NotFondException e) {
                     new Alert(Alert.AlertType.ERROR, "Failed to load the customer name");
                 }
-                if (cmbItemCode.getSelectionModel().getSelectedItem() != null) btnAdd.setDisable(false);
+                if (cmbItemCode.getSelectionModel().getSelectedItem() != null) {
+                    btnAdd.setDisable(false);
+                    txtQty.requestFocus();
+                } else {
+                    cmbItemCode.requestFocus();
+                }
             }
         });
+
+        txtQty.setOnAction(event -> btnAdd.fire());
 
         cmbItemCode.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, selectedItem) -> {
             if (selectedItem != null) {
@@ -95,10 +115,14 @@ public class PlaceOrderFormController {
                 } catch (NotFondException e) {
                     e.printStackTrace();
                 }
-                if (cmbCustomerId.getSelectionModel().getSelectedItem() != null) btnAdd.setDisable(false);
+                if (cmbCustomerId.getSelectionModel().getSelectedItem() != null) {
+                    btnAdd.setDisable(false);
+                    txtQty.requestFocus();
+                } else {
+                    cmbCustomerId.requestFocus();
+                }
             }
         });
-
 
     }
 
@@ -106,7 +130,10 @@ public class PlaceOrderFormController {
         if ((!txtQty.getText().trim().matches("[0-9 ]+")) || (Integer.parseInt(txtQty.getText().trim()) > Integer.parseInt(txtQtyOnHand.getText().trim()))) {
             txtQty.requestFocus();
             txtQty.setFocusColor(Paint.valueOf("red"));
+            return;
         }
+        tblOrderDetails.getItems().add(new PlaceOrderTM((String) cmbItemCode.getValue(),txtDescription.getText(),
+                txtQty.getText(),new BigDecimal(txtUnitPrice.getText()),new BigDecimal(txtUnitPrice.getText()).multiply(new BigDecimal(txtQty.getText()))));
 
     }
 
@@ -118,5 +145,21 @@ public class PlaceOrderFormController {
 
     }
 
+    public String generateNewOrderId() {
 
+        int lastIdNumerical = 0;
+
+        if (tblOrderDetails.getItems().isEmpty()) {
+            return "OD001";
+        } else {
+            ObservableList<PlaceOrderTM> items = tblOrderDetails.getItems();
+            for (PlaceOrderTM placeOrderTM : items) {
+                if (lastIdNumerical < Integer.parseInt(placeOrderTM.getCode().split("OD")[1])) {
+                    lastIdNumerical = Integer.parseInt(placeOrderTM.getCode().split("OD")[1]);
+                }
+            }
+            return String.format("OD%03d", lastIdNumerical + 1);
+
+        }
+    }
 }
