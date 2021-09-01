@@ -44,6 +44,7 @@ public class PlaceOrderFormController {
     public Label lblTotal;
     public CustomerService customerService = new CustomerService();
     public ItemService itemService = new ItemService();
+    public JFXButton btnAdd;
 
     @FXML
     private void navigateToHome(MouseEvent event) throws IOException {
@@ -74,8 +75,11 @@ public class PlaceOrderFormController {
                 } catch (NotFondException e) {
                     new Alert(Alert.AlertType.ERROR, "Failed to load the customer name");
                 }
+                if (cmbItemCode.getSelectionModel().getSelectedItem() != null) btnAdd.setDisable(false);
             }
         });
+
+        btnAdd.setDisable(true);
         cmbItemCode.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, selectedItem) -> {
             if (selectedItem != null) {
                 try {
@@ -85,17 +89,15 @@ public class PlaceOrderFormController {
                 } catch (NotFondException e) {
                     e.printStackTrace();
                 }
+                if (cmbCustomerId.getSelectionModel().getSelectedItem() != null) btnAdd.setDisable(false);
             }
         });
+
 
     }
 
     public void btnAdd_OnAction(ActionEvent actionEvent) {
-        if (!txtQty.getText().trim().matches("[0-9 ]+")) {
-            txtQty.requestFocus();
-            txtQty.setFocusColor(Paint.valueOf("red"));
-        }
-        if (Integer.parseInt(txtQty.getText().trim()) > Integer.parseInt(txtQtyOnHand.getText().trim())) {
+        if ((!txtQty.getText().trim().matches("[0-9 ]+")) || (Integer.parseInt(txtQty.getText().trim()) > Integer.parseInt(txtQtyOnHand.getText().trim()))) {
             txtQty.requestFocus();
             txtQty.setFocusColor(Paint.valueOf("red"));
         }
